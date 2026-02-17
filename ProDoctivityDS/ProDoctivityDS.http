@@ -1,0 +1,6 @@
+@ProDoctivityDS_HostAddress = http://localhost:5196
+
+GET {{ProDoctivityDS_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -1,0 +1,16 @@
+<Solution>
+  <Folder Name="/Source/" />
+  <Folder Name="/Source/Application/">
+    <Project Path="ProDoctivityDS.Application/ProDoctivityDS.Application.csproj" Id="6be48dbc-d33f-4013-bc47-15b8ab4a7afa" />
+  </Folder>
+  <Folder Name="/Source/Domain/">
+    <Project Path="ProDoctivityDS.Domain/ProDoctivityDS.Domain.csproj" />
+  </Folder>
+  <Folder Name="/Source/Infraestructure/">
+    <Project Path="ProDoctivityDS.Persistence/ProDoctivityDS.Persistence.csproj" />
+    <Project Path="ProDoctivityDS.Shared/ProDoctivityDS.Shared.csproj" Id="81e7a6e4-b5e3-4d15-9695-0d9750f56133" />
+  </Folder>
+  <Folder Name="/Source/Presentation/">
+    <Project Path="ProDoctivityDS/ProDoctivityDS.csproj" Id="72601b7a-40bf-4f6e-9d13-4a715cd00315" />
+  </Folder>
+</Solution>

@@ -1,0 +1,34 @@
+﻿-- Tabla: StoredConfigurations
+-- Almacena la configuración activa del sistema (solo una fila recomendada)
+CREATE TABLE IF NOT EXISTS "StoredConfigurations" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_StoredConfigurations" PRIMARY KEY AUTOINCREMENT,
+    "ApiBaseUrl" TEXT NOT NULL,               -- URL base de la API (cifrada en reposo)
+    "ApiKey" TEXT NOT NULL,                  -- Credencial sensible (cifrada)
+    "ApiSecret" TEXT NOT NULL,               -- Credencial sensible (cifrada)
+    "BearerToken" TEXT NOT NULL,             -- Token sensible (cifrado)
+    "CookieSessionId" TEXT NOT NULL,         -- Cookie sensible (cifrada)
+    "ProcessingOptionsJson" TEXT NOT NULL DEFAULT '{}',  -- Opciones de procesamiento (JSON)
+    "AnalysisRulesJson" TEXT NOT NULL DEFAULT '{}',      -- Reglas de análisis (JSON)
+    "LastModified" TEXT NOT NULL             -- Fecha ISO8601 (ej. '2025-03-28T12:00:00.000Z')
+);
+
+-- Índice único para garantizar una sola fila (opcional, se controla en lógica)
+CREATE UNIQUE INDEX IF NOT EXISTS "IX_StoredConfigurations_Singleton" ON "StoredConfigurations" ((1));
+
+-- ------------------------------------------------------------
+-- Tabla: ActivityLogs
+-- Registro de todas las operaciones del sistema
+CREATE TABLE IF NOT EXISTS "ActivityLogs" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_ActivityLogs" PRIMARY KEY AUTOINCREMENT,
+    "Timestamp" TEXT NOT NULL,               -- Fecha ISO8601
+    "Level" TEXT NOT NULL,                  -- INFO, SUCCESS, WARNING, ERROR, DEBUG
+    "Category" TEXT NOT NULL,               -- Ej. "Búsqueda", "Procesamiento", "Análisis"
+    "Message" TEXT NOT NULL,                -- Descripción del evento
+    "DocumentId" TEXT NULL                 -- ID del documento asociado (opcional)
+);
+
+-- Índice para búsquedas por fecha (muy útil para consultar logs recientes)
+CREATE INDEX IF NOT EXISTS "IX_ActivityLogs_Timestamp" ON "ActivityLogs" ("Timestamp" DESC);
+
+-- Índice para filtrar logs por documento (útil para auditoría)
+CREATE INDEX IF NOT EXISTS "IX_ActivityLogs_DocumentId" ON "ActivityLogs" ("DocumentId");
