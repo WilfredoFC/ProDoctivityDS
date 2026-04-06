@@ -75,7 +75,8 @@ namespace ProDoctivityDS.Controllers
             }
 
             // Obtener documentos seleccionados
-            var selectedIds = (await _selectionService.GetSelectedDocumentsAsync(sessionId)).ToList();
+            var selectedEnumerable = await _selectionService.GetSelectedDocumentsAsync(sessionId); 
+            var selectedIds = selectedEnumerable.ToList();
             _logger.LogInformation(">>> Documentos seleccionados: {Count} para sesión {SessionId}", selectedIds.Count, sessionId);
             if (selectedIds.Count == 0)
             {
