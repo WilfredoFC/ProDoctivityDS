@@ -16,7 +16,7 @@ export class DocumentService {
   private apiUrl = '/api/documents';
 
   getDocumentIdentityNumber(documentId: string): Observable<{ documentId: string; identityNumber: string | null }> {
-  return this.http.get<{ documentId: string; identityNumber: string | null }>(`${this.apiUrl}/${documentId}/identity-number`);
+  return this.http.get<{ documentId: string; identityNumber: string | null }>(`${this.apiUrl}/${documentId}/matricula`);
 }
   // Mapeo para documentos del POST (con prefijo $)
   private mapPostDocument(doc: any): Document {

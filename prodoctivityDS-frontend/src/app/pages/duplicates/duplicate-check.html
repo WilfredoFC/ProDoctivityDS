@@ -4,6 +4,7 @@
       <mat-card-title>Verificar documentos duplicados por cédula</mat-card-title>
     </mat-card-header>
     <mat-card-content>
+      <!-- Sección de búsqueda individual -->
       <div class="search-form">
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Cédula</mat-label>
@@ -25,7 +26,7 @@
         </button>
       </div>
 
-      <!-- Indicador de carga -->
+      <!-- Indicador de carga individual -->
       @if (loading) {
         <div class="loading-indicator">
           <mat-spinner diameter="40"></mat-spinner>
@@ -33,21 +34,21 @@
         </div>
       }
 
-      <!-- Mensaje de error -->
+      <!-- Mensaje de error individual -->
       @if (error) {
         <div class="error-message">
           <mat-icon>error</mat-icon> {{ error }}
         </div>
       }
 
-      <!-- Mensaje informativo (sin duplicados) -->
+      <!-- Mensaje informativo individual -->
       @if (infoMessage) {
         <div class="info-message">
           <mat-icon>info</mat-icon> {{ infoMessage }}
         </div>
       }
 
-      <!-- Resultados -->
+      <!-- Resultados individuales -->
       @if (result && result.groups.length > 0) {
         <div class="results">
           <div class="results-header">
@@ -130,6 +131,64 @@
           }
         </div>
       }
+
+      <!-- ========== SECCIÓN DE PROCESAMIENTO POR LOTE ========== -->
+      <mat-divider class="batch-divider"></mat-divider>
+      <div class="batch-section">
+        <h3>Procesar lista de cédulas</h3>
+        <div class="upload-area">
+          <input
+            type="file"
+            (change)="onFileSelected($event)"
+            accept=".txt"
+            #fileInput
+            style="display: none"
+          />
+          <button mat-raised-button color="accent" (click)="fileInput.click()">
+            <mat-icon>upload_file</mat-icon> Seleccionar archivo .txt
+          </button>
+          <span *ngIf="batchProgress().fileName">{{ batchProgress().fileName }}</span>
+          <button
+            *ngIf="batchProgress().processedCount > 0 || batchProgress().errors.length > 0"
+            mat-raised-button
+            color="warn"
+            (click)="clearBatchResults()"
+            matTooltip="Limpiar resultados del lote"
+          >
+            <mat-icon>clear</mat-icon> Limpiar resultados
+          </button>
+        </div>
+
+        @if (batchProgress().processing || batchProgress().processedCount > 0 || batchProgress().errors.length > 0) {
+          <div class="batch-progress">
+            @if (batchProgress().processing) {
+              <mat-progress-bar mode="determinate" [value]="batchProgress().progressPercent"></mat-progress-bar>
+            }
+            <p>{{ batchProgress().currentIndex + 1 }} / {{ batchProgress().total }} – Cédula actual: {{ batchProgress().currentCedula }}</p>
+            <p>Procesadas: {{ batchProgress().processedCount }} | Eliminados: {{ batchProgress().deletedCount }}</p>
+
+            <!-- Botón de detener (solo si está procesando) -->
+            @if (batchProgress().processing) {
+              <div class="cancel-button-container">
+                <button mat-raised-button color="warn" (click)="cancelBatchProcessing()" matTooltip="Detener proceso">
+                  <mat-icon>stop</mat-icon> Detener
+                </button>
+              </div>
+            }
+
+            @if (batchProgress().errors.length > 0) {
+              <details class="error-details">
+                <summary>Ver errores ({{ batchProgress().errors.length }})</summary>
+                <ul>
+                  @for (err of batchProgress().errors; track err) {
+                    <li>{{ err }}</li>
+                  }
+                </ul>
+              </details>
+            }
+          </div>
+        }
+      </div>
     </mat-card-content>
   </mat-card>
 </div>

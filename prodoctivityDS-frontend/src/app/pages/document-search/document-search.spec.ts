@@ -1,5 +1,5 @@
 import { Component, signal, OnInit } from '@angular/core';
-import { DocumentService } from '../../data/Services/document.service';
+import { DocumentService } from '../../data/service/document.service';
 
 
 @Component({

@@ -29,5 +29,6 @@ namespace ProDoctivityDS.Application.Interfaces
         Task<DocumentDto> GetDocumentAsync(string documentId, CancellationToken cancellationToken = default);
 
         Task<string?> GetDocumentIdentityNumberAsync(string documentId, CancellationToken cancellationToken = default);
+        Task<string?> GetMatriculaNumberAsync(string documentId, CancellationToken cancellationToken = default);
     }
 }

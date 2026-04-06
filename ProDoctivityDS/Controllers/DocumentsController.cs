@@ -204,5 +204,20 @@ namespace ProDoctivityDS.Controllers
                 return StatusCode(500, new { message = "Error interno al obtener el número de identidad" });
             }
         }
+
+        [HttpGet("{documentId}/matricula")]
+        public async Task<ActionResult<DocumentIdentityNumberResponse>> GetMatricula(string documentId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var number = await _searchService.GetMatriculaNumberAsync(documentId, cancellationToken);
+                return Ok(new DocumentIdentityNumberResponse { DocumentId = documentId, IdentityNumber = number });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener identity number para documento {DocumentId}", documentId);
+                return StatusCode(500, new { message = "Error interno al obtener el número de identidad" });
+            }
+        }
     }
 }

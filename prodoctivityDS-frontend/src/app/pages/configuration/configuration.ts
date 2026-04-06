@@ -110,7 +110,7 @@ export class ConfigurationComponent implements OnInit {
         this.configForm.patchValue({
           apiCredentials: {
             baseUrl: config.baseUrl,
-            apiKey: config.apiKey,     // viene como "●●●●●●●●", pero el usuario puede modificarlo
+            apiKey: config.apiKey, 
             apiSecret: config.apiSecret,
             bearerToken: config.bearerToken,
             cookieSessionId: config.cookieSessionId,
