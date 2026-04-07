@@ -1,5 +1,4 @@
-﻿using Domain.Interfaces.Repositories;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using ProDoctivityDS.Application.Dtos.ProDoctivity;
 using ProDoctivityDS.Application.Dtos.Request;
 using ProDoctivityDS.Application.Dtos.Response;
@@ -8,15 +7,12 @@ using ProDoctivityDS.Application.Interfaces;
 using ProDoctivityDS.Domain.Entities;
 using ProDoctivityDS.Domain.Entities.ValueObjects;
 using ProDoctivityDS.Domain.Interfaces;
-using System.IdentityModel.Tokens.Jwt;
 
 namespace ProDoctivityDS.Application.Services
 {
     public class ProcessingService : IProcessingService
     {
         private readonly IStoredConfigurationRepository _configurationRepository;
-        private readonly IActivityLogRepository _logRepository;
-        private readonly IProcessedDocumentRepository _processedDocumentRepository;
         private readonly IProductivityApiClient _apiClient;
         private readonly IPdfAnalyzer _pdfAnalyzer;
         private readonly IPdfManipulator _pdfManipulator;
@@ -26,8 +22,6 @@ namespace ProDoctivityDS.Application.Services
 
         public ProcessingService(
             IStoredConfigurationRepository configurationRepository,
-            IActivityLogRepository logRepository,
-            IProcessedDocumentRepository processedDocumentRepository,
             IProductivityApiClient apiClient,
             IPdfAnalyzer pdfAnalyzer,
             IPdfManipulator pdfManipulator,
@@ -36,8 +30,6 @@ namespace ProDoctivityDS.Application.Services
             ILogger<ProcessingService> logger)
         {
             _configurationRepository = configurationRepository;
-            _logRepository = logRepository;
-            _processedDocumentRepository = processedDocumentRepository;
             _apiClient = apiClient;
             _pdfAnalyzer = pdfAnalyzer;
             _pdfManipulator = pdfManipulator;
@@ -276,19 +268,7 @@ namespace ProDoctivityDS.Application.Services
                             "processed",
                             cancellationToken);
 
-                        // 2.9 Registrar en base de datos local
-                        var processedDoc = new ProcessedDocument
-                        {
-                            DocumentId = documentId,
-                            OriginalFileName = documentName,
-                            ProcessedFilePath = processedPath,
-                            OriginalFilePath = originalPath,
-                            PagesRemoved = pagesToRemove.Count,
-                            ApiUpdated = apiUpdated,
-                            ProcessingDate = DateTime.UtcNow,
-                            ErrorMessage = null
-                        };
-                        await _processedDocumentRepository.SaveEntityAsync(processedDoc);
+                        
                     }
 
                     await LogAsync("SUCCESS", "Procesamiento",
@@ -303,14 +283,6 @@ namespace ProDoctivityDS.Application.Services
                     _logger.LogError(ex, "Error procesando documento {DocumentId} en sesión {SessionId}", documentId, sessionId);
                     await LogAsync("ERROR", "Procesamiento", $"Error: {ex.Message}", documentId);
 
-                    var failedDoc = new ProcessedDocument
-                    {
-                        DocumentId = documentId,
-                        OriginalFileName = documentName,
-                        ProcessingDate = DateTime.UtcNow,
-                        ErrorMessage = ex.Message
-                    };
-                    await _processedDocumentRepository.SaveEntityAsync(failedDoc);
                 }
 
                 // Actualizar progreso después de cada documento
@@ -351,14 +323,7 @@ namespace ProDoctivityDS.Application.Services
         private async Task LogAsync(string level, string category, string message, string documentId = null)
         {
             _logger.Log(GetLogLevel(level), message);
-            await _logRepository.SaveEntityAsync(new ActivityLogEntry
-            {
-                Timestamp = DateTime.UtcNow,
-                Level = level,
-                Category = category,
-                DocumentId = documentId,
-                Message = message
-            });
+            
         }
 
         private static LogLevel GetLogLevel(string level) => level switch

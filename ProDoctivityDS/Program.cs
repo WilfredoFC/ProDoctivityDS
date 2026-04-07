@@ -2,8 +2,8 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.OpenApi;
 using ProDoctivityDS.Application;
 using ProDoctivityDS.Persistence;
-using ProDoctivityDS.Persistence.Context;
 using ProDoctivityDS.Shared;
+using ProDoctivityDS.Persistence.Seeds;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -43,7 +43,7 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-builder.Services.AddDistributedMemoryCache(); // Almacena sesiones en memoria (para desarrollo)
+builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(20);
@@ -60,6 +60,11 @@ builder.Services.AddDataProtection()
     .SetApplicationName("ProDoctivityDS");
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    await StoredConfigurationSeeder.SeedDefaultConfigurationAsync(scope.ServiceProvider);
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

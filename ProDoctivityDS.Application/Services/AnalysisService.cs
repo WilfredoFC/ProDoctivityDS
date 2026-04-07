@@ -4,7 +4,6 @@ using ProDoctivityDS.Application.Dtos.Request;
 using ProDoctivityDS.Application.Dtos.Response;
 using ProDoctivityDS.Application.Dtos.ValueObjects;
 using ProDoctivityDS.Application.Interfaces;
-using ProDoctivityDS.Domain.Entities;
 using ProDoctivityDS.Domain.Entities.ValueObjects;
 using ProDoctivityDS.Domain.Interfaces;
 
@@ -13,20 +12,17 @@ namespace ProDoctivityDS.Application.Services
     public class AnalysisService : IAnalysisService
     {
         private readonly IStoredConfigurationRepository _configurationRepository;
-        private readonly IActivityLogRepository _logRepository;
         private readonly IPdfAnalyzer _pdfAnalyzer;
         private readonly IMapper _mapper;
         private readonly ILogger<AnalysisService> _logger;
 
         public AnalysisService(
             IStoredConfigurationRepository configurationRepository,
-            IActivityLogRepository logRepository,
             IPdfAnalyzer pdfAnalyzer,
             IMapper mapper,
             ILogger<AnalysisService> logger)
         {
             _configurationRepository = configurationRepository;
-            _logRepository = logRepository;
             _pdfAnalyzer = pdfAnalyzer;
             _mapper = mapper;
             _logger = logger;
@@ -57,14 +53,6 @@ namespace ProDoctivityDS.Application.Services
             config.AnalysisRules = _mapper.Map<AnalysisRuleSet>(rulesDto);
             await _configurationRepository.UpdateConfigurationAsync(config);
 
-            await _logRepository.AddAsync(new ActivityLogEntry
-            {
-                Timestamp = DateTime.UtcNow,
-                Level = "INFO",
-                Category = "Análisis",
-                Message = "Reglas de análisis actualizadas"
-            });
-
             _logger.LogInformation("Reglas de análisis guardadas correctamente");
         }
 
@@ -79,15 +67,6 @@ namespace ProDoctivityDS.Application.Services
 
             // Realizar el análisis con PdfPig
             var analysisResult = await _pdfAnalyzer.AnalyzePdfAsync(request.FileContent, rules, cancellationToken);
-
-            // Registrar la prueba en el log
-            await _logRepository.AddAsync(new ActivityLogEntry
-            {
-                Timestamp = DateTime.UtcNow,
-                Level = "INFO",
-                Category = "Análisis",
-                Message = $"Prueba de análisis en {request.FileName}: {analysisResult.Diagnosis}"
-            });
 
             return new AnalysisTestResponseDto
             {

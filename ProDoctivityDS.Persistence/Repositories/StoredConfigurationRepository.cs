@@ -1,66 +1,48 @@
 ﻿using AutoMapper;
-using Microsoft.EntityFrameworkCore;
 using ProDoctivityDS.Domain.Entities;
 using ProDoctivityDS.Domain.Interfaces;
-using ProDoctivityDS.Persistence.Context;
 
 namespace ProDoctivityDS.Persistence.Repositories
 {
-    public class StoredConfigurationRepository : BaseRepository<StoredConfiguration>, IStoredConfigurationRepository
+    public class StoredConfigurationRepository : IStoredConfigurationRepository
     {
-        private readonly ProDoctivityDSDbContext _context;
-        private readonly IEncryptionService _encryption;
         private readonly IMapper _mapper;
+        private StoredConfiguration? _configuration;
+        private readonly object _lock = new object();
 
-        public StoredConfigurationRepository(ProDoctivityDSDbContext context, IMapper mapper, IEncryptionService encryptionService) : base(context)
+        public StoredConfigurationRepository(IMapper mapper)
         {
-            _context = context;
             _mapper = mapper;
-            _encryption = encryptionService; 
-        }
-        
-
-        public async Task<StoredConfiguration> GetActiveConfigurationAsync()
-        {
-            var entity = await _context.StoredConfigurations.FirstOrDefaultAsync();
-            if (entity == null)
-                return new StoredConfiguration();
-
-            // Descifrar campos sensibles
-            entity.ApiKey = _encryption.Decrypt(entity.ApiKey);
-            entity.ApiSecret = _encryption.Decrypt(entity.ApiSecret);
-            entity.BearerToken = _encryption.Decrypt(entity.BearerToken);
-            entity.CookieSessionId = _encryption.Decrypt(entity.CookieSessionId);
-
-            return _mapper.Map<StoredConfiguration>(entity);
-        
         }
 
-        public async Task UpdateConfigurationAsync(StoredConfiguration configuration)
+        public Task<StoredConfiguration> GetActiveConfigurationAsync()
         {
-            // Mapear a entidad de persistencia
-            var entity = _mapper.Map<StoredConfiguration>(configuration);
-
-            // Cifrar campos sensibles
-            entity.ApiKey = _encryption.Encrypt(entity.ApiKey);
-            entity.ApiSecret = _encryption.Encrypt(entity.ApiSecret);
-            entity.BearerToken = _encryption.Encrypt(entity.BearerToken);
-            entity.CookieSessionId = _encryption.Encrypt(entity.CookieSessionId);
-            entity.LastModified = DateTime.UtcNow;
-
-            var existing = await _context.StoredConfigurations.FirstOrDefaultAsync();
-            if (existing == null)
+            lock (_lock)
             {
-                 
-                _context.StoredConfigurations.Add(entity);
-            }
-            else
-            {
-                _context.StoredConfigurations.Remove(existing);
-                _context.StoredConfigurations.Add(entity);
-            }
+                if (_configuration == null)
+                {
+                    return Task.FromResult(new StoredConfiguration());
+                }
 
-            await _context.SaveChangesAsync();
+                var copy = _mapper.Map<StoredConfiguration>(_configuration);
+
+                return Task.FromResult(copy);
+            }
+        }
+
+        public Task UpdateConfigurationAsync(StoredConfiguration configuration)
+        {
+            lock (_lock)
+            {
+                var entityToStore = _mapper.Map<StoredConfiguration>(configuration);
+
+                entityToStore.ProcessingOptionsJson = configuration.ProcessingOptionsJson;
+                entityToStore.AnalysisRulesJson = configuration.AnalysisRulesJson;
+
+                entityToStore.LastModified = DateTime.UtcNow;
+                _configuration = entityToStore;
+            }
+            return Task.CompletedTask;
         }
     }
 }

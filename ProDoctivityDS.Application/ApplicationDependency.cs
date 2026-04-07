@@ -10,8 +10,6 @@ namespace ProDoctivityDS.Application
         public static void AddApplicationServices(this IServiceCollection services)
         {
 
-            services.AddScoped(typeof(IBaseService<,>), typeof(BaseServices<,>));
-
             services.AddMemoryCache();
             services.AddHttpClient();
 
@@ -21,7 +19,6 @@ namespace ProDoctivityDS.Application
             services.AddScoped<ISelectionService, SelectionService>();
             services.AddScoped<IProcessingService, ProcessingService>();
             services.AddScoped<IAnalysisService, AnalysisService>();
-            services.AddScoped<ILogService, LogService>();
             services.AddScoped<IDocumentTypeService, DocumentTypeService>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IDuplicateDetectionService, DuplicateDetectionService>();

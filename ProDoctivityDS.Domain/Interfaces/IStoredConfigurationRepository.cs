@@ -2,7 +2,7 @@
 
 namespace ProDoctivityDS.Domain.Interfaces
 {
-    public interface IStoredConfigurationRepository : IBaseRepository<StoredConfiguration>
+    public interface IStoredConfigurationRepository 
     {
         /// <summary>
         /// Obtiene la configuración activa (única fila). Si no existe, retorna una nueva con valores por defecto.
