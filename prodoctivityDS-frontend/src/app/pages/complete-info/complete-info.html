@@ -1,0 +1,101 @@
+<div class="container">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>Completar información de documentos</mat-card-title>
+      <mat-card-subtitle>
+        Ingrese una cédula para encontrar documentos relacionados y actualizar los que no tengan número de identidad.
+      </mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <!-- Formulario de búsqueda -->
+      <div class="search-form">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Cédula</mat-label>
+          <input matInput [(ngModel)]="cedula" placeholder="Ej: 001-1234567-8" (keyup.enter)="search()" />
+        </mat-form-field>
+        <button mat-raised-button color="primary" (click)="search()" [disabled]="loading">
+          <mat-icon>search</mat-icon> Buscar documentos
+        </button>
+      </div>
+
+      <!-- Indicador de carga -->
+      @if (loading) {
+        <div class="loading-indicator">
+          <mat-spinner diameter="40"></mat-spinner>
+          <span>Buscando documentos...</span>
+        </div>
+      }
+
+      <!-- Mensaje de error -->
+      @if (error) {
+        <div class="error-message">
+          <mat-icon>error</mat-icon> {{ error }}
+        </div>
+      }
+
+      <!-- Resultados -->
+      @if (result && result.documents.length > 0) {
+        <div class="results">
+          <div class="results-header">
+            <h3>
+              Documentos asociados a <strong>{{ result.fullName }}</strong>
+              (Cédula: {{ result.cedula }})
+            </h3>
+            <div class="stats">
+              <span class="badge with-cedula">✅ Con cédula: {{ result.documentsWithCedulaCount }}</span>
+              <span class="badge without-cedula">⚠️ Sin cédula: {{ result.documentsWithoutCedulaCount }}</span>
+            </div>
+            <button
+              mat-raised-button
+              color="accent"
+              (click)="completeInfo()"
+              [disabled]="completing || result.documentsWithoutCedulaCount === 0"
+              matTooltip="Completar automáticamente los documentos sin cédula"
+            >
+              <mat-icon>assignment</mat-icon>
+              {{ completing ? 'Actualizando...' : 'Completar información' }}
+            </button>
+          </div>
+
+          <div class="table-container">
+            <table class="documents-table">
+              <thead>
+                <tr>
+                  <th>Nombre del documento</th>
+                  <th>Tipo</th>
+                  <th>Cédula actual</th>
+                  <th>Fecha</th>
+                  <th>ID</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (doc of result.documents; track trackByDocumentId($index, doc)) {
+                  <tr [class.missing]="!doc.hasIdentityNumber">
+                    <td>{{ doc.name }}</td>
+                    <td>{{ doc.documentTypeName }}</td>
+                    <td class="identity-cell">
+                      @if (doc.hasIdentityNumber) {
+                        <span class="has-id">{{ doc.identityNumber }}</span>
+                      } @else {
+                        <span class="missing-id">— (se completará)</span>
+                      }
+                    </td>
+                    <td>{{ doc.createdAt | date:'yyyy-MM-dd' }}</td>
+                    <td>{{ doc.documentId | slice:0:8 }}...</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
+
+      <!-- Sin resultados -->
+      @if (result && result.documents.length === 0 && !loading) {
+        <div class="info-message">
+          <mat-icon>info</mat-icon> No se encontraron documentos para la cédula ingresada.
+        </div>
+      }
+    </mat-card-content>
+  </mat-card>
+</div>

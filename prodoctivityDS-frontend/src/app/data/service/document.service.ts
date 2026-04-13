@@ -9,6 +9,31 @@ export interface SearchResponse {
   totalCount: number;
   currentPage: number;
 }
+export interface DocumentsByCedulaResponse {
+  cedula: string;
+  fullName: string;
+  documents: DocumentForCompletion[];
+  documentsWithCedulaCount: number;
+  documentsWithoutCedulaCount: number;
+}
+
+export interface DocumentForCompletion {
+  documentId: string;
+  name: string;
+  documentTypeName: string;
+  hasIdentityNumber: boolean;
+  identityNumber?: string;
+  createdAt: string;
+}
+
+export interface CompleteInfoResponse {
+  cedula: string;
+  fullName: string;
+  documentsFoundWithCedula: number;
+  documentsWithoutCedulaUpdated: number;
+  updatedDocumentIds: string[];
+  errors: string[];
+}
 
 @Injectable({ providedIn: 'root' })
 export class DocumentService {
@@ -125,4 +150,14 @@ getDocumentById(documentId: string): Observable<Document> {
       return this.getAllDocuments(page, pageSize);
     }
   }
+
+  getDocumentsByCedula(cedula: string): Observable<DocumentsByCedulaResponse> {
+  return this.http.get<DocumentsByCedulaResponse>(`${this.apiUrl}/by-cedula`, { params: { cedula } });
+}
+
+completeMissingDocuments(cedula: string): Observable<CompleteInfoResponse> {
+  return this.http.post<CompleteInfoResponse>(`${this.apiUrl}/complete-info`, { cedula });
+}
+
+  
 }

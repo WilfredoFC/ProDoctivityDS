@@ -14,11 +14,13 @@ namespace ProDoctivityDS.Controllers
     public class DocumentsController : ControllerBase
     {
         private readonly ISearchService _searchService;
+        private readonly ICompleteDocumentInfoService _completeInfoService;
         private readonly ILogger<DocumentsController> _logger;
 
-        public DocumentsController(ISearchService searchService, ILogger<DocumentsController> logger)
+        public DocumentsController(ISearchService searchService, ICompleteDocumentInfoService completeInfoService, ILogger<DocumentsController> logger)
         {
             _searchService = searchService;
+            _completeInfoService = completeInfoService;
             _logger = logger;
         }
 
@@ -217,6 +219,65 @@ namespace ProDoctivityDS.Controllers
             {
                 _logger.LogError(ex, "Error al obtener identity number para documento {DocumentId}", documentId);
                 return StatusCode(500, new { message = "Error interno al obtener el número de identidad" });
+            }
+        }
+
+        /// <summary>
+        /// Obtiene todos los documentos relacionados a una cédula (mismo nombre) sin modificarlos.
+        /// </summary>
+        /// <param name="cedula">Número de documento de identidad</param>
+        /// <param name="cancellationToken">Token de cancelación</param>
+        /// <returns>Lista de documentos con indicación de si ya tienen cédula</returns>
+        [HttpGet("by-cedula")]
+        [ProducesResponseType(typeof(DocumentsByCedulaResponseDto), 200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(500)]
+        public async Task<ActionResult<DocumentsByCedulaResponseDto>> GetDocumentsByCedula(
+            [FromQuery] string cedula,
+            CancellationToken cancellationToken)
+        {
+            if (string.IsNullOrWhiteSpace(cedula))
+                return BadRequest(new { message = "La cédula es requerida" });
+
+            try
+            {
+                var result = await _completeInfoService.GetDocumentsByCedulaAsync(cedula, cancellationToken);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener documentos por cédula {Cedula}", cedula);
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Completa la información de documentos que no tienen cédula pero comparten el nombre.
+        /// Actualiza los documentos sin cédula agregando el número de identidad.
+        /// </summary>
+        /// <param name="request">Objeto con la cédula</param>
+        /// <param name="cancellationToken">Token de cancelación</param>
+        /// <returns>Resumen de la operación</returns>
+        [HttpPost("complete-info")]
+        [ProducesResponseType(typeof(CompleteDocumentInfoResponseDto), 200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(500)]
+        public async Task<ActionResult<CompleteDocumentInfoResponseDto>> CompleteMissingDocuments(
+            [FromBody] CompleteDocumentInfoRequestDto request,
+            CancellationToken cancellationToken)
+        {
+            if (string.IsNullOrWhiteSpace(request.Cedula))
+                return BadRequest(new { message = "La cédula es requerida" });
+
+            try
+            {
+                var result = await _completeInfoService.CompleteMissingDocumentsAsync(request.Cedula, cancellationToken);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al completar documentos para cédula {Cedula}", request.Cedula);
+                return StatusCode(500, new { message = ex.Message });
             }
         }
     }

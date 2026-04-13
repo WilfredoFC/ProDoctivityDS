@@ -26,6 +26,7 @@ namespace ProDoctivityDS.Application
 
 
             services.AddScoped<IProductivityApiClient, ProductivityApiClient>();
+            services.AddScoped<ICompleteDocumentInfoService, CompleteDocumentInfoService>();
             services.AddScoped<IFileStorageService, FileStorageService>();
 
             services.AddSingleton<IProcessingProgressStore, ProcessingProgressStore>();
